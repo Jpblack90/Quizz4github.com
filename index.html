@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Táctico: Resolución de Conflictos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Quantico:wght@400;700&display=swap');
+        
+        :root {
+            --primary: #0a1930;
+            --accent: #ffd700;
+            --text: #ffffff;
+            --military-green: #2a3b2a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Quantico', sans-serif;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230a1930"/><path d="M0 0L100 100M100 0L0 100" stroke="%23152238" stroke-width="1"/></svg>') repeat;
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent, var(--primary));
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .military-frame {
+            border: 3px solid var(--accent);
+            position: relative;
+            padding: 30px;
+            background: rgba(10, 25, 48, 0.95);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .military-frame::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid var(--accent);
+            pointer-events: none;
+            clip-path: polygon(0 10%, 10% 0, 90% 0, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0 90%);
+        }
+
+        h1, h2 {
+            font-family: 'Black Ops One', cursive;
+            color: var(--accent);
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(255, 215, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .welcome-screen, .quiz-container, .result-screen {
+            animation: fadeInMilitary 0.5s ease-out;
+        }
+
+        @keyframes fadeInMilitary {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .military-input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--accent);
+            color: var(--text);
+            font-family: 'Quantico', sans-serif;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .military-input:focus {
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .military-btn {
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            color: var(--primary);
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Black Ops One', cursive;
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+        }
+
+        .military-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .progress-container {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--accent);
+            height: 30px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffa500);
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .question-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(42, 59, 42, 0.3);
+            border-left: 4px solid var(--accent);
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option::before {
+            content: '►';
+            color: var(--accent);
+            margin-right: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .option:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(10px);
+        }
+
+        .option:hover::before {
+            opacity: 1;
+        }
+
+        .option.selected {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: var(--accent);
+        }
+
+        .certificate {
+            background: white;
+            padding: 40px;
+            position: relative;
+            color: var(--primary);
+            font-family: 'Times New Roman', serif;
+        }
+
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary) 60%, transparent 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 85% 100%, 15% 100%, 0 70%);
+        }
+
+        .certificate::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(0deg, var(--primary) 0%, var(--primary) 60%, transparent 100%);
+            clip-path: polygon(0 30%, 15% 0, 85% 0, 100% 30%, 100% 100%, 0 100%);
+        }
+
+        .certificate-content {
+            border: double 6px var(--primary);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            background: white;
+        }
+
+        .certificate-title {
+            font-family: 'Black Ops One', cursive;
+            color: var(--primary);
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .certificate-logo {
+            width: 100px;
+            margin: 20px auto;
+        }
+
+        .signature-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+        }
+
+        .signature {
+            text-align: center;
+        }
+
+        .signature img {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+
+        /* Efectos adicionales de Call of Duty */
+        @keyframes scanline {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 215, 0, 0.1);
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+        }
+
+        .corner-decoration {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent);
+        }
+
+        .top-left {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .top-right {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .bottom-left {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+        }
+
+        .bottom-right {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+        }
+        .logo-container {
+            width: 100%; /* Se ajusta al contenedor */
+            display: flex;
+            justify-content: center; /* Centra la imagen horizontalmente */
+            align-items: center; /* Centra la imagen verticalmente */
+            height: 100vh; /* Hace que el contenedor ocupe toda la altura de la ventana */
+        }
+
+        img {
+            width: 100%; /* La imagen ocupará el 100% del ancho del contenedor */
+            max-width: 300px; /* Puedes ajustar este valor según tu preferencia */
+            height: auto; /* Mantiene la relación de aspecto original */
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="container">
+        <div class="military-frame welcome-screen" id="welcomeScreen">
+            <div class="corner-decoration top-left"></div>
+            <div class="corner-decoration top-right"></div>
+            <div class="corner-decoration bottom-left"></div>
+            <div class="corner-decoration bottom-right"></div>
+            <h1><i class="fas fa-medal"></i> Misión: Resolución de Conflictos <i class="fas fa-medal"></i></h1>
+            <p class="mission-brief">CLASIFICADO: NIVEL 1</p>
+            <input type="text" class="military-input" id="userName" placeholder="IDENTIFICACIÓN DEL OPERADOR" required>
+            <button class="military-btn" onclick="startQuiz()">
+                <i class="fas fa-play"></i> Iniciar Misión
+            </button>
+        </div>
+
+        <div class="military-frame quiz-container" id="quizContainer" style="display: none;">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress"></div>
+                <div class="progress-text">PROGRESO DE MISIÓN: <span id="progressText">0%</span></div>
+            </div>
+            <div class="question-container">
+                <h2 id="question"></h2>
+                <div id="options"></div>
+            </div>
+            <button class="military-btn" onclick="submitAnswer()" id="submitBtn">
+                <i class="fas fa-check"></i> Confirmar
+            </button>
+        </div>
+
+        <div class="military-frame result-screen" id="resultScreen" style="display: none;">
+            <h2>Informe de Misión</h2>
+            <div id="score"></div>
+            <div id="message"></div>
+            <button class="military-btn" onclick="showCertificate()" id="certificateBtn" style="display: none;">
+                <i class="fas fa-certificate"></i> Ver Certificado
+            </button>
+        </div>
+
+        <div class="certificate" id="certificate" style="display: none;">
+            <div class="certificate-content">
+                <div class="certificate-title">Certificado</div>
+                <h3>DE RECONOCIMIENTO A:</h3>
+                <p id="certificateName" style="font-size: 24px; margin: 20px 0;"></p>
+                <p style="font-size: 18px; line-height: 1.6;">
+                    Por haber concluido de manera satisfactoria el curso de:<br>
+                    <strong>"Resolución de Conflictos y Negociación"</strong><br>
+                    impartido por PsicoInnovaTe, empresa especializada en recursos humanos.
+                </p>
+                <div class="certificate-logo">
+                    <img src="/img/LogoPsisco.jpg" alt="PsicoInnova Logo">
+                </div>
+                <div class="signature-container">
+                    <div class="signature">
+                        
+                        <p>Naydeth Prieto</p>
+                        <p>Propietaria</p>
+                    </div>
+                    <div class="signature">
+                        
+                        <p>Brisa Meza</p>
+                        <p>Coo-propietaria</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const questions = [
+    {
+        question: "¿Qué es un conflicto en el entorno laboral?",
+        options: [
+            "Una situación donde no existen desacuerdos",
+            "Una discrepancia entre intereses, necesidades o valores",
+            "La falta de comunicación por completo",
+            "Una dinámica positiva de trabajo"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Cuál es el primer paso para resolver un conflicto?",
+        options: [
+            "Ignorar el problema",
+            "Identificar la causa raíz del conflicto",
+            "Elegir un ganador en la discusión",
+            "Incrementar la tensión entre las partes"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué estilo de resolución busca satisfacer ambas partes?",
+        options: [
+            "Evitación",
+            "Competitivo",
+            "Colaborativo",
+            "Acomodativo"
+        ],
+        correct: 2
+    },
+    {
+        question: "¿Qué es la negociación?",
+        options: [
+            "Un proceso para imponer decisiones",
+            "Una estrategia para resolver diferencias de manera mutuamente beneficiosa",
+            "Una técnica para evitar conflictos",
+            "Un intercambio de reproches"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Cuál de las siguientes NO es una técnica de negociación?",
+        options: [
+            "Escucha activa",
+            "Uso de amenazas",
+            "Búsqueda de intereses comunes",
+            "Generación de opciones para el beneficio mutuo"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué tipo de enfoque utiliza la negociación integrativa?",
+        options: [
+            "Competir para ganar",
+            "Resolver en base a intereses comunes",
+            "Ignorar las diferencias",
+            "Proponer soluciones unilaterales"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué fomenta la adaptabilidad en los equipos?",
+        options: [
+            "Estructuras rígidas de trabajo",
+            "Comunicación abierta y flexibilidad",
+            "Evitar la retroalimentación",
+            "Promover la monotonía"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué es esencial para prevenir conflictos laborales?",
+        options: [
+            "Mantener canales de comunicación abiertos",
+            "Evitar reuniones frecuentes",
+            "Ignorar las necesidades de los colaboradores",
+            "Aumentar la carga de trabajo sin consulta"
+        ],
+        correct: 0
+    },
+    {
+        question: "¿Cuál es una causa común de conflictos laborales?",
+        options: [
+            "Metas claramente definidas",
+            "Problemas de comunicación",
+            "Reconocimiento adecuado",
+            "Tareas bien distribuidas"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué rol cumple un mediador en un conflicto?",
+        options: [
+            "Imponer una solución",
+            "Facilitar el diálogo entre las partes",
+            "Aumentar las tensiones",
+            "Ignorar el conflicto"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué resultado busca la negociación efectiva?",
+        options: [
+            "Solo el beneficio de una parte",
+            "Un acuerdo que satisface a ambas partes",
+            "Prolongar el conflicto",
+            "Evitar cualquier solución"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué es un conflicto constructivo?",
+        options: [
+            "Un desacuerdo sin resolución",
+            "Un conflicto que genera soluciones positivas y mejora las relaciones",
+            "Un conflicto que destruye las relaciones laborales",
+            "Un desacuerdo sin importancia"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué tipo de estrategia se usa en una resolución colaborativa?",
+        options: [
+            "Evitar el conflicto",
+            "Imponer una solución rápida",
+            "Buscar soluciones que beneficien a ambas partes",
+            "Ignorar el problema y esperar que se resuelva solo"
+        ],
+        correct: 2
+    },
+    {
+        question: "¿Qué es una negociación distributiva?",
+        options: [
+            "Una negociación donde ambas partes ganan",
+            "Una negociación basada en repartir recursos limitados",
+            "Una negociación sin intereses involucrados",
+            "Una negociación con un enfoque en la cooperación"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué aspecto es crucial para manejar un conflicto de manera efectiva?",
+        options: [
+            "Ignorar las emociones",
+            "No involucrarse en el conflicto",
+            "Escuchar y comprender a todas las partes involucradas",
+            "Imponer una solución rápidamente"
+        ],
+        correct: 2
+    },
+    {
+        question: "¿Qué es el 'win-win' en una negociación?",
+        options: [
+            "Una solución que beneficia solo a una de las partes",
+            "Una solución que beneficia a ambas partes",
+            "Una estrategia para evitar conflictos",
+            "Un conflicto no resuelto"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Cuál es el principal objetivo de un acuerdo de negociación?",
+        options: [
+            "Ganar más que la otra parte",
+            "Llegar a un entendimiento mutuo",
+            "Romper la relación entre las partes",
+            "Establecer un acuerdo unilateral"
+        ],
+        correct: 1
+    },
+    {
+        question: "¿Qué es un 'zona de posible acuerdo' (ZOPA)?",
+        options: [
+            "El área donde ambas partes aceptan los mismos términos",
+            "La parte de la negociación donde no se discute",
+            "La parte en la que una de las partes se impone",
+            "El término para aceptar el conflicto"
+        ],
+        correct: 0
+    },
+    {
+        question: "¿Qué tipo de enfoque utiliza la negociación distributiva?",
+        options: [
+            "Buscar una solución ganadora-ganadora",
+            "Repartir los recursos de manera equitativa",
+            "Luchar por obtener la mayor parte de un recurso limitado",
+            "Proponer opciones flexibles y cooperativas"
+        ],
+        correct: 2
+    },
+    {
+        question: "¿Qué técnica es útil para prevenir conflictos en el lugar de trabajo?",
+        options: [
+            "Evitar la retroalimentación",
+            "Comunicación abierta y clara",
+            "Fomentar la competencia excesiva",
+            "Ignorar los problemas"
+        ],
+        correct: 1
+    }
+];
+
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userName = '';
+
+        function startQuiz() {
+            userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                alert('Por favor, ingresa tu nombre completo');
+                return;
+            }
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('quizContainer').style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('question').textContent = question.question;
+            const options = document.getElementById('options');
+            options.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('div');
+                button.className = 'option';
+                button.textContent = option;
+                button.onclick = () => selectOption(index);
+                options.appendChild(button);
+            });
+
+            updateProgress();
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+            options[index].classList.add('selected');
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
+        function submitAnswer() {
+            const selected = document.querySelector('.option.selected');
+            if (!selected) {
+                alert('Por favor, selecciona una respuesta');
+                return;
+            }
+
+            const selectedIndex = Array.from(document.querySelectorAll('.option')).indexOf(selected);
+            if (selectedIndex === questions[currentQuestion].correct) {
+                score++;
+            }
+
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'block';
+            
+            const percentage = (score / questions.length) * 100;
+            document.getElementById('score').textContent = `Puntuación: ${percentage.toFixed(1)}%`;
+            
+            const message = percentage >= 70 
+                ? '¡Felicitaciones! Has superado la misión con éxito.' 
+                : 'Misión fallida. Inténtalo nuevamente.';
+            document.getElementById('message').textContent = message;
+            
+            if (percentage >= 70) {
+                document.getElementById('certificateBtn').style.display = 'block';
+            }
+        }
+
+        function showCertificate() {
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('certificate').style.display = 'block';
+            document.getElementById('certificateName').textContent = userName;
+        }
+    </script>
+</body>
+</html>
